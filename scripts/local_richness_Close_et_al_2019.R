@@ -40,7 +40,7 @@ library(viridis) # cool colour schemes for plotting continuous data
 
 # Load and clean data ---------------------------------------------------------------
 
-## PBDB occurrence data
+## PBDB occurrence data - cleaned using this protocol: https://github.com/emmadunne/pbdb_cleaning
 occ_data <- as_tibble(read.csv("./datasets/PBDB_occurrences_cleaned.csv", header = TRUE, stringsAsFactors=FALSE))
 
 ## Collection data download corresponding to the occurrence data above
