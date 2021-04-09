@@ -18,7 +18,6 @@ library(viridis) # cool colour schemes for plotting continuous data
 
 
 
-
 # Getting set up ----------------------------------------------------------
 
 
@@ -42,52 +41,49 @@ library(viridis) # cool colour schemes for plotting continuous data
 # Load and clean data ---------------------------------------------------------------
 
 ## PBDB occurrence data
-alpha_data <- as_tibble(read.csv("./datasets/PBDB_occ_data.csv", header = TRUE, stringsAsFactors=FALSE))
+occ_data <- as_tibble(read.csv("./datasets/PBDB_occurrences_cleaned.csv", header = TRUE, stringsAsFactors=FALSE))
 
 ## Collection data download corresponding to the occurrence data above
 coll_data <- as_tibble(read.csv("./datasets/PBDB_collections.csv", header = T, skip = 20, stringsAsFactors = FALSE))
 
 ## Taxonomic hierarchy information from the PBDB
-taxonomic_names <- as_tibble(read.csv("./datasets/PBDB_taxonomy.csv", stringsAsFactors = F, skip = 22, header = T))
+tax_data <- as_tibble(read.csv("./datasets/PBDB_taxonomy.csv", stringsAsFactors = F, skip = 22, header = T))
 
-
-## Strip old or alternate names out of accepted_name field
-alpha_data$accepted_name <- str_replace(alpha_data$accepted_name, " \\(.*\\)", "")
 
 ## Make new fields: occurrence.genus_name and occurrence.species_name
-alpha_data[alpha_data$accepted_rank == "species", "occurrence.genus_name"] <- word(alpha_data[alpha_data$accepted_rank == "species", ]$accepted_name, 1)
-alpha_data[alpha_data$accepted_rank == "species", "occurrence.species_name"] <- word(alpha_data[alpha_data$accepted_rank == "species", ]$accepted_name, 2)
-alpha_data[alpha_data$accepted_rank == "subspecies", "occurrence.genus_name"] <- word(alpha_data[alpha_data$accepted_rank == "subspecies", ]$accepted_name, 1)
-alpha_data[alpha_data$accepted_rank == "subspecies", "occurrence.species_name"] <- word(alpha_data[alpha_data$accepted_rank == "subspecies", ]$accepted_name, 2)
-alpha_data[alpha_data$accepted_rank == "genus", "occurrence.genus_name"] <- word(alpha_data[alpha_data$accepted_rank == "genus", ]$accepted_name, 1)
-alpha_data[alpha_data$accepted_rank == "genus", "occurrence.species_name"] <- "sp."
+occ_data[occ_data$accepted_rank == "species", "occurrence.genus_name"] <- word(occ_data[occ_data$accepted_rank == "species", ]$accepted_name, 1)
+occ_data[occ_data$accepted_rank == "species", "occurrence.species_name"] <- word(occ_data[occ_data$accepted_rank == "species", ]$accepted_name, 2)
+occ_data[occ_data$accepted_rank == "subspecies", "occurrence.genus_name"] <- word(occ_data[occ_data$accepted_rank == "subspecies", ]$accepted_name, 1)
+occ_data[occ_data$accepted_rank == "subspecies", "occurrence.species_name"] <- word(occ_data[occ_data$accepted_rank == "subspecies", ]$accepted_name, 2)
+occ_data[occ_data$accepted_rank == "genus", "occurrence.genus_name"] <- word(occ_data[occ_data$accepted_rank == "genus", ]$accepted_name, 1)
+occ_data[occ_data$accepted_rank == "genus", "occurrence.species_name"] <- "sp."
 
 ## Make a binomial name field
-alpha_data$occurrence.binomial <- paste(alpha_data$occurrence.genus_name, alpha_data$occurrence.species_name, sep = " ")
-alpha_data[alpha_data$occurrence.binomial == "NA NA", "occurrence.binomial"] <- ""
+occ_data$occurrence.binomial <- paste(occ_data$occurrence.genus_name, occ_data$occurrence.species_name, sep = " ")
+occ_data[occ_data$occurrence.binomial == "NA NA", "occurrence.binomial"] <- ""
 
 ## Rename variables to match the ones Roger uses in his functions
-alpha_data$occurrence.reference_no <- alpha_data$reference_no; alpha_data$reference_no <- NULL
-alpha_data$occurrence.species_reso <- alpha_data$species_reso; alpha_data$species_reso <- NULL
-alpha_data$ma_max <- alpha_data$max_ma; alpha_data$max_ma <- NULL
-alpha_data$ma_min <- alpha_data$min_ma; alpha_data$min_ma <- NULL
-alpha_data$max_interval <- alpha_data$early_interval; alpha_data$early_interval <- NULL
-alpha_data$min_interval <- alpha_data$late_interval; alpha_data$late_interval <- NULL
-alpha_data$occurrence.abund_value <- alpha_data$abund_value %>% as.numeric; alpha_data$abund_value <- NULL
-alpha_data$country <- alpha_data$cc
-alpha_data$paleolatdec <- alpha_data$paleolat; alpha_data$paleolngdec <- alpha_data$paleolng
+occ_data$occurrence.reference_no <- occ_data$reference_no; occ_data$reference_no <- NULL
+occ_data$occurrence.species_reso <- occ_data$species_reso; occ_data$species_reso <- NULL
+occ_data$ma_max <- occ_data$max_ma; occ_data$max_ma <- NULL
+occ_data$ma_min <- occ_data$min_ma; occ_data$min_ma <- NULL
+occ_data$max_interval <- occ_data$early_interval; occ_data$early_interval <- NULL
+occ_data$min_interval <- occ_data$late_interval; occ_data$late_interval <- NULL
+occ_data$occurrence.abund_value <- occ_data$abund_value %>% as.numeric; occ_data$abund_value <- NULL
+occ_data$country <- occ_data$cc
+occ_data$paleolatdec <- occ_data$paleolat; occ_data$paleolngdec <- occ_data$paleolng
 
 ## Make other variables that will be useful for plotting
-alpha_data$ma_mid <- (alpha_data$ma_max + alpha_data$ma_min) / 2
-alpha_data$ma_length <- alpha_data$ma_max - alpha_data$ma_min
+occ_data$ma_mid <- (occ_data$ma_max + occ_data$ma_min) / 2
+occ_data$ma_length <- occ_data$ma_max - occ_data$ma_min
 
 ## Convert collection_no to a character in each dataset to avoid problems with merging
 coll_data$collection_no <- as.character(coll_data$collection_no)
-alpha_data$collection_no <- as.character(alpha_data$collection_no)
+occ_data$collection_no <- as.character(occ_data$collection_no)
 
 ## Merge in useful variables from the collection data dataset
-alpha_data$collection.reference_no <- coll_data[match(alpha_data$collection_no, coll_data$collection_no), ]$reference_no #slot in reference numbers for collections
-alpha_data$collection.ref_pubyr <- coll_data[match(alpha_data$collection_no, coll_data$collection_no), ]$ref_pubyr #slot in ref_pubyrs for collections
+occ_data$collection.reference_no <- coll_data[match(occ_data$collection_no, coll_data$collection_no), ]$reference_no #slot in reference numbers for collections
+occ_data$collection.ref_pubyr <- coll_data[match(occ_data$collection_no, coll_data$collection_no), ]$ref_pubyr #slot in ref_pubyrs for collections
 
 
 
@@ -98,18 +94,18 @@ alpha_data$collection.ref_pubyr <- coll_data[match(alpha_data$collection_no, col
 
 ## Function for taxonomic hierarchy
 getTaxonomicHierarchy <- function(x) {
-  x1 <- taxonomic_names[which(taxonomic_names$accepted_no == x), ]
+  x1 <- tax_data[which(tax_data$accepted_no == x), ]
   x2 <- vector()
   while (nrow(x1) != 0) {
     pn <- x1$parent_no
-    x1 <- taxonomic_names[which(taxonomic_names$accepted_no == pn & taxonomic_names$difference == ""), ]
+    x1 <- tax_data[which(tax_data$accepted_no == pn & tax_data$difference == ""), ]
     x2 <- unique(c(x1$accepted_name, x2))
   }
   x2
 }
 
 ## Gather all the taxon numbers (accepted_no) for the taxa in the occurrence dataset
-all_accepted_nos <- alpha_data$accepted_no %>% unique
+all_accepted_nos <- occ_data$accepted_no %>% unique
 
 ## Run the apply loop using mclapply 
 system.time(taxonomic_hierarchies <- mclapply(all_accepted_nos, 
@@ -120,7 +116,7 @@ system.time(taxonomic_hierarchies <- mclapply(all_accepted_nos,
 
 ## Create a tibble for this output
 taxonomic_hierarchies <- tibble(accepted_no = names(taxonomic_hierarchies), t = taxonomic_hierarchies)
-taxonomic_hierarchies <- mutate(taxonomic_hierarchies, accepted_name = taxonomic_names[match(taxonomic_hierarchies$accepted_no, taxonomic_names$accepted_no), ]$accepted_name) %>% select(accepted_no, accepted_name, t)
+taxonomic_hierarchies <- mutate(taxonomic_hierarchies, accepted_name = tax_data[match(taxonomic_hierarchies$accepted_no, tax_data$accepted_no), ]$accepted_name) %>% select(accepted_no, accepted_name, t)
 
 ## Some names may duplicate in the last step, this bit removes those so the richness-counting algorithm works properly
 taxonomic_hierarchies <- pbmclapply(1:nrow(taxonomic_hierarchies), function(i) {
@@ -141,7 +137,7 @@ taxonomic_hierarchies <- bind_rows(taxonomic_hierarchies)
 ## Load the script containing richness-counting algorithm:
 ## *** be sure to change the file path to match where you've saved this file! ***
 ## (or open it as any normal script in R and click "Source" in the top right corner of the scripts pane)
-source('~/Projects/Late_Triassic_lat_div/functions/countLocalRichness2019.R', echo=TRUE)
+source('~/Projects/_Sharing/local_richness/functions/countLocalRichness2019.R', echo=TRUE)
 
 
 #### Calculate per-collection richness
