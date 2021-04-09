@@ -137,7 +137,7 @@ taxonomic_hierarchies <- bind_rows(taxonomic_hierarchies)
 ## Load the script containing richness-counting algorithm:
 ## *** be sure to change the file path to match where you've saved this file! ***
 ## (or open it as any normal script in R and click "Source" in the top right corner of the scripts pane)
-source('~/Projects/_Sharing/local_richness/functions/countLocalRichness2019.R', echo=TRUE)
+source("./functions/countLocalRichness2019.R", echo = TRUE)
 
 
 #### Calculate per-collection richness
@@ -152,7 +152,7 @@ source('~/Projects/_Sharing/local_richness/functions/countLocalRichness2019.R', 
 
 
 ## Start by truncating the dataset to just the columns the algorithm needs:
-occs <- alpha_data %>% select(identified_name, difference, accepted_name, accepted_no, 
+occs <- occ_data %>% select(identified_name, difference, accepted_name, accepted_no, 
                               collection_no, accepted_rank, occurrence.binomial, 
                               occurrence.genus_name, family, formation)
 
@@ -172,8 +172,8 @@ colnames(coll_IR) <- c("collection_no", "genera", "IR") # rename the columns for
 ### Finally, organize the output and prepare for plotting
 
 ## Make a tibble for collection-level alpha diversity data from the coll_data imported at the beginning
-collection_data <- coll_data[coll_data$collection_no %in% unique(alpha_data$collection_no), ]
-collection_data <- left_join(collection_data, tbl_df(alpha_data[!duplicated(alpha_data$collection_no), c("collection_no","collection.reference_no","ma_max","ma_min","max_interval","min_interval","country","paleolatdec","paleolngdec","ma_mid","ma_length")]), by = "collection_no")
+collection_data <- coll_data[coll_data$collection_no %in% unique(occ_data$collection_no), ]
+collection_data <- left_join(collection_data, tbl_df(occ_data[!duplicated(occ_data$collection_no), c("collection_no","collection.reference_no","ma_max","ma_min","max_interval","min_interval","country","paleolatdec","paleolngdec","ma_mid","ma_length")]), by = "collection_no")
 
 ## Merge these data objects (richness data and collection data) into a single data frame for easier manipulation
 collection_data <- left_join(collection_data, coll_SR, by = "collection_no")
